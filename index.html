@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Free AI Voice Studio</title>
+
+    <style>
+
+        body {
+
+            font-family: system-ui, -apple-system, sans-serif;
+
+            background-color: #121212;
+
+            color: #ffffff;
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            height: 100vh;
+
+            margin: 0;
+
+        }
+
+        .container {
+
+            background: #1e1e1e;
+
+            padding: 30px;
+
+            border-radius: 12px;
+
+            box-shadow: 0 4px 25px rgba(0,0,0,0.5);
+
+            width: 100%;
+
+            max-width: 600px;
+
+        }
+
+        .controls {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 15px;
+
+            margin-bottom: 15px;
+
+        }
+
+        select, textarea, input[type="range"] {
+
+            width: 100%;
+
+            padding: 10px;
+
+            background: #2d2d2d;
+
+            color: white;
+
+            border: 1px solid #444;
+
+            border-radius: 8px;
+
+            font-size: 14px;
+
+            box-sizing: border-box;
+
+        }
+
+        .slider-group {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 5px;
+
+        }
+
+        .slider-group label {
+
+            font-size: 13px;
+
+            color: #aaa;
+
+        }
+
+        textarea {
+
+            resize: vertical;
+
+            margin-bottom: 15px;
+
+        }
+
+        button {
+
+            background-color: #10b981;
+
+            color: white;
+
+            border: none;
+
+            padding: 14px;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            border-radius: 8px;
+
+            cursor: pointer;
+
+            width: 100%;
+
+            transition: background 0.3s;
+
+        }
+
+        button:hover {
+
+            background-color: #059669;
+
+        }
+
+        button:disabled {
+
+            background-color: #444;
+
+            cursor: not-allowed;
+
+        }
+
+        audio {
+
+            margin-top: 20px;
+
+            width: 100%;
+
+            display: none;
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2 style="text-align: center;">Free AI Voice Studio</h2>
+
+        <div class="controls">
+
+            <select id="voiceSelect" style="grid-column: span 2;">
+
+                <optgroup label="English (US)">
+
+                    <option value="en-US-ChristopherNeural">Christopher (Male)</option>
+
+                    <option value="en-US-JennyNeural">Jenny (Female)</option>
+
+                    <option value="en-US-AvaNeural">Ava (Female)</option>
+
+                    <option value="en-US-AriaNeural">Aria (Female)</option>
+
+                    <option value="en-US-AvaNeural">Ava (Female)</option>
+
+                </optgroup>
+
+                <optgroup label="English (UK)">
+
+                    <option value="en-GB-RyanNeural">Ryan (Male)</option>
+
+                    <option value="en-GB-SoniaNeural">Sonia (Female)</option>
+
+                </optgroup>
+
+                <!-- <optgroup label="Tamil (தமிழ்)">
+
+                    <option value="ta-IN-PallaviNeural">Pallavi (Female – India)</option>
+
+                    <option value="ta-IN-ValluvarNeural">Valluvar (Male – India)</option>
+
+                    <option value="ta-LK-SaranyaNeural">Saranya (Female – Sri Lanka)</option>
+
+                    <option value="ta-LK-KumarNeural">Kumar (Male – Sri Lanka)</option>
+
+                    <option value="ta-SG-VenbaNeural">Venba (Female – Singapore)</option>
+
+                    <option value="ta-SG-AnbuNeural">Anbu (Male – Singapore)</option>
+
+                    <option value="ta-MY-KaniNeural">Kani (Female – Malaysia)</option>
+
+                    <option value="ta-MY-SuryaNeural">Surya (Male – Malaysia)</option>
+
+                </optgroup> -->
+
+                <optgroup label="Tamil News Reader Voices">
+
+                    <option value="ta-IN-PallaviNeural">
+                        Pallavi News Reader (Female)
+                    </option>
+
+                    <option value="ta-IN-ValluvarNeural">
+                        Valluvar News Reader (Male)
+                    </option>
+
+                </optgroup>
+
+                <optgroup label="Spanish (Spain)">
+
+                    <option value="es-ES-AlvaroNeural">Alvaro (Male)</option>
+
+                    <option value="es-ES-ElviraNeural">Elvira (Female)</option>
+
+                </optgroup>
+
+                <optgroup label="French (France)">
+
+                    <option value="fr-FR-HenriNeural">Henri (Male)</option>
+
+                    <option value="fr-FR-DeniseNeural">Denise (Female)</option>
+
+                </optgroup>
+
+            </select>
+
+            <div class="slider-group">
+
+                <label>Speed (Emotion: Slow=Sad, Fast=Excited)</label>
+
+                <input type="range" id="rateSlider" min="-50" max="50" value="0">
+
+            </div>
+
+            <div class="slider-group">
+
+                <label>Pitch (Tone: Low=Serious, High=Panic)</label>
+
+                <input type="range" id="pitchSlider" min="-50" max="50" value="0">
+
+            </div>
+
+        </div>
+
+        <textarea id="textInput" rows="5" placeholder="Type your script here..."></textarea>
+
+        <button id="convertBtn" onclick="convertToSpeech()">Generate Custom Voice</button>
+
+        <audio id="audioPlayer" controls></audio>
+
+    </div>
+
+    <script>
+
+        async function convertToSpeech() {
+
+            const text = document.getElementById('textInput').value;
+
+            const voice = document.getElementById('voiceSelect').value;
+
+            const rateVal = document.getElementById('rateSlider').value;
+
+            const pitchVal = document.getElementById('pitchSlider').value;
+
+            const rate = rateVal >= 0 ? `+${rateVal}%` : `${rateVal}%`;
+
+            const pitch = pitchVal >= 0 ? `+${pitchVal}Hz` : `${pitchVal}Hz`;
+
+            const player = document.getElementById('audioPlayer');
+
+            const btn = document.getElementById('convertBtn');
+
+            if (!text.trim()) {
+
+                alert("Please enter a script.");
+
+                return;
+
+            }
+
+            btn.innerText = "Synthesizing...";
+
+            btn.disabled = true;
+
+            const formData = new FormData();
+
+            formData.append("text", text);
+
+            formData.append("voice", voice);
+
+            formData.append("rate", rate);
+
+            formData.append("pitch", pitch);
+
+            try {
+
+                const response = await fetch("http://localhost:8000/convert", {
+
+                    method: "POST",
+
+                    body: formData
+
+                });
+
+                if (response.ok) {
+
+                    const blob = await response.blob();
+
+                    const audioUrl = URL.createObjectURL(blob);
+
+                    player.src = audioUrl;
+
+                    player.style.display = "block";
+
+                    player.play();
+
+                } else {
+
+                    alert("Failed to generate audio.");
+
+                }
+
+            } catch (error) {
+
+                console.error("Error:", error);
+
+                alert("Server error. Is the Python backend running?");
+
+            } finally {
+
+                btn.innerText = "Generate Custom Voice";
+
+                btn.disabled = false;
+
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>
